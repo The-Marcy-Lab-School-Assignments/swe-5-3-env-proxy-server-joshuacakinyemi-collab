@@ -34,45 +34,26 @@ app.use(logRoutes);
 app.use(serveStatic);
 
 const serveGifs = async (req, res, next) => {
-  try {
-    // We'll secure this value soon!
-    const response = await fetch(process.env.URL);
-    if (!response.ok) {
-      throw Error(`Fetch failed. ${response.status} ${response.statusText}`);
-    }
-    const data = await response.json();
 
-    // send the fetched data to the client
-    res.send(data);
-  } catch (error) {
-    // or send an error. 503 means the service is unavailable
-    res.status(503).send(error);
-  }
-}
-
-const findGif = async (req, res, next) => {
   try {
     const { searchTerm } = req.query;
-    const response = await fetch(process.env.URL);
+    const url = searchTerm
+      ? `https://api.giphy.com/v1/gifs/search?api_key=${process.env.API_KEY}&q=${encodeURIComponent(searchTerm)}&limit=9&rating=g`
+      : `https://api.giphy.com/v1/gifs/trending?api_key=${process.env.API_KEY}&limit=9&rating=g`;
+
+    const response = await fetch(url)
     if (!response.ok) {
-      throw Error(`Fetch failed. ${response.status} ${response.statusText}`)
+      throw new Error(`Fetch failed. ${response.status} ${response.statusText}`)
     }
     const data = await response.json()
-    const gifs = data.find(gif => gif.title === searchTerm);
-
-    if (!gifs) {
-      res.status(404).send({ message: `No quote with the name ${searchTerm}` });
-      return
-    }
-
-    res.send(gifs);
+    res.send(data);
   } catch (error) {
-    res.status(503).send(error);
+    res.status(503).send({ message: error.message });
   }
 }
 
 app.get('/api/gifs', serveGifs);
-app.get('/api/gifs', findGif);
+
 
 //////////////////////////
 // Listener

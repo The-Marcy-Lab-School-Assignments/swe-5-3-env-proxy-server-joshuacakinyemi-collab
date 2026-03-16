@@ -4,6 +4,10 @@ const errorEl = document.querySelector('#error');
 // Clears the gif list and renders an array of gif items.
 export const renderGifs = (gifs) => {
   gifList.innerHTML = '';
+  if (!gifs || gifs.length === 0) {
+    renderError('No GIFs found.');
+    return;
+  }
   gifs.forEach((gif) => {
     const li = document.createElement('li');
     const img = document.createElement('img');
